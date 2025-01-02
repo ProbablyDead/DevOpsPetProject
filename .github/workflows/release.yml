@@ -1,0 +1,67 @@
+name: release
+
+on:
+  push:
+    branches: [ "release" ]
+
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Login in to Docker Hub
+        uses: docker/login-action@v3.1.0
+        with: 
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Decrypt Google credentials.json
+        env:
+          GOOGLE_CREDS_PW: ${{ secrets.GOOGLE_CREDS_PW }}
+        run: |
+          gpg --quiet --batch --yes --decrypt --passphrase="$GOOGLE_CREDS_PW" \
+          --output $GITHUB_WORKSPACE/bot/secrets/creds.json $GITHUB_WORKSPACE/bot/secrets/creds.json.gpg
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v5.3.0
+        with: 
+          build-args: |
+            "BOT_TOKEN=${{ secrets.BOT_TOKEN }}"
+            "SPREADSHEET_ID=${{ secrets.SPREADSHEET_ID }}"
+            "DATA_PATH=${{ vars.DATA_PATH }}"
+            "SHOP_ID=${{ secrets.SHOP_ID }}"
+            "SHOP_KEY=${{ secrets.SHOP_KEY }}"
+            "PRICE=${{ vars.PRICE }}"
+            "RETURN_URL=${{ vars.RETURN_URL }}"
+          context: .
+          push: true
+          tags: ${{ vars.DOCKER_TAG }}
+
+
+  deploy-via-ssh:
+    needs: build-and-push-image
+    name: Deploy image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install ssh keys
+        run: |
+            install -m 600 -D /dev/null ~/.ssh/id_rsa
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+            ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+
+      - name: Connect and pull
+        run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 
+          "cd ${{ secrets.WORK_DIR }} && DATA_PATH=${{ vars.DATA_PATH }} docker compose pull 
+          && DATA_PATH=${{ vars.DATA_PATH }} docker compose up -d && exit"
+
+      - name: cleanup
+        run: rm -rf ~/.ssh
+
