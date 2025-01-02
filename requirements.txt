@@ -1,0 +1,7 @@
+pillow==10.2.0
+aiogram==3.4.1
+python-dotenv==1.0.1
+gspread==6.0.0
+yookassa==3.0.1
+flask==3.0.3
+waitress==3.0.0

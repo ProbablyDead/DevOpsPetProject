@@ -1,0 +1,16 @@
+services:
+  souvenir-bot:
+    container_name: souvenir-bot
+    working_dir: /SouvenirPerfumeTGBot
+    image: yakiza/souvenir-bot:latest
+    restart: always
+    build:
+        context: .
+        dockerfile: Dockerfile
+    command: sh -c "cd bot && python main.py"
+    volumes:
+      - souvenir-bot:${DATA_PATH}
+
+volumes:
+  souvenir-bot:
+    name: souvenir-bot
