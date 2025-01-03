@@ -5,20 +5,20 @@ from random import choice
 class ResultImage:
     COUNT_OF_INGREDIENTS = 6
     path_to_refs = "./references"
-    
-    templates = [path_to_refs + "/templates/В1.jpg",
-                 path_to_refs + "/templates/В2.jpg",
-                 path_to_refs + "/templates/В3.jpg"]
+
+    templates = [path_to_refs + "/templates/B1.jpg",
+                 path_to_refs + "/templates/B2.jpg",
+                 path_to_refs + "/templates/B3.jpg"]
 
     images_path = path_to_refs + "/notes/"
-    
+
     ingredient_name_font = path_to_refs + "/fonts/Montserrat-Medium.ttf"
     perfume_title_font = path_to_refs + "/fonts/Montserrat-Medium.ttf"
     ingredient_name_size = 70
     perfume_title_size = 100
-    
+
     image_size = (630, 635)
-    
+
     images_place = [(2688, 325),
                     (2305, 1320),
                     (3079, 1320),
@@ -26,9 +26,9 @@ class ResultImage:
                     (3079, 2166),
                     (2690, 3185)]
     ingredient_name_offset = 120
-    
+
     perfume_title_place = (933, 2730)
-    
+
     perfume_title_place_size = (660, 1400)
 
     @staticmethod
@@ -43,7 +43,7 @@ class ResultImage:
 
         text_coord = (image_coord[0] + ResultImage.image_size[0]//2,
                       image_coord[1] + ResultImage.image_size[1] +
-                      ((ResultImage.ingredient_name_offset - 30) 
+                      ((ResultImage.ingredient_name_offset - 30)
                        if middle and '\n' in ing_name else ResultImage.ingredient_name_offset))
 
         if not middle:
@@ -90,7 +90,8 @@ class ResultImage:
                                       range(ResultImage.COUNT_OF_INGREDIENTS)):
             with Image.open(ResultImage.get_image(id)) as note:
                 note.load()
-                working_template.paste(note.resize(ResultImage.image_size), place)
+                working_template.paste(note.resize(
+                    ResultImage.image_size), place)
                 ResultImage.paste_ingredient_title(working_template, name,
                                                    place, middle=not (i == 0 or i == 5))
 
