@@ -6,7 +6,7 @@ app.merge(child_app)
 
 
 def start_serv():
-    app.run(host='localhost', port=8080)
+    app.run(host='0.0.0.0', port=8080)
 
 
 @app.route('/')

@@ -1,5 +1,6 @@
 services:
   app:
     image: image_processor
-    network_mode: "host"
+    ports: 
+      - 8080:8080
 
