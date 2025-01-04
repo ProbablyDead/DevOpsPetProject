@@ -1,4 +1,4 @@
-from google_api import Google_worker, INGREDIENT_QUESTION_COUNT
+from .google_api import Google_worker, INGREDIENT_QUESTION_COUNT
 
 username = "yakiza_testoviy"
 test = list(map(str, range(0, INGREDIENT_QUESTION_COUNT)))

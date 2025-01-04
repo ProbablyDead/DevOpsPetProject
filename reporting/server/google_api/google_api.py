@@ -1,22 +1,11 @@
 import gspread
-from gspread import Cell
-import os
 import zoneinfo
 
 from datetime import datetime
-from dotenv import load_dotenv
-
-load_dotenv()
-
-EMPTY_USER = "__empty__"
-CREDENTIALS_FILE = './secrets/credentials.json'
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
-INGREDIENT_QUESTION_COUNT = int(os.getenv("INGREDIENT_QUESTION_COUNT"))
-
-if not SPREADSHEET_ID:
-    print("No spreadsheet id")
-    exit()
+from .__init__ import \
+    CREDENTIALS_FILE, \
+    SPREADSHEET_ID, \
+    INGREDIENT_QUESTION_COUNT
 
 
 class Google_worker:
@@ -28,18 +17,18 @@ class Google_worker:
     def __add_line(self, body) -> None:
         self.__worksheet.append_row(body, table_range='A:A')
 
-    def update_sheet(self, userName: str, new_values: [str]) -> None:
-        cell = self.__worksheet.find(userName)
+    def update_test(self, user_name: str, new_values: [str]) -> None:
+        cell = self.__worksheet.find(user_name)
 
-        new_str = [userName] + new_values
+        new_str = [user_name] + new_values
 
         if cell:
             self.__worksheet.update(range_name=cell.address, values=[new_str])
         else:
             self.__add_line(new_str)
 
-    def add_payment(self, userName: str, new_value: int | str):
-        cell = self.__worksheet.find(userName)
+    def add_payment(self, user_name: str, new_value: int | str):
+        cell = self.__worksheet.find(user_name)
 
         payment_cell = gspread.Cell(
             cell.row,
