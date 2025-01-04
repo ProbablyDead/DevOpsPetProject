@@ -1,5 +1,5 @@
 def main():
-    from start_serv import start_serv
+    from .start_serv import start_serv
     start_serv()
 
 

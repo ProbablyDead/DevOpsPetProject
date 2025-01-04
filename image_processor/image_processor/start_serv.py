@@ -1,5 +1,5 @@
 from bottle import Bottle
-from endpoints import child_app
+from .endpoints import child_app
 
 app = Bottle()
 app.merge(child_app)

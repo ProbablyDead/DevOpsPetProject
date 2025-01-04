@@ -1,5 +1,5 @@
 from bottle import Bottle, request
-from result_image import ResultImage
+from .result_image import ResultImage
 from io import BytesIO
 import json
 
