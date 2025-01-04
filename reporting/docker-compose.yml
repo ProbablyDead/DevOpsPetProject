@@ -1,0 +1,6 @@
+services:
+  app:
+    image: report
+    ports: 
+      - 8080:8080
+
