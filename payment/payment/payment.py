@@ -15,19 +15,16 @@ SHOP_KEY = os.getenv('SHOP_KEY')
 
 Configuration.configure(SHOP_ID, SHOP_KEY)
 
-PRICE = os.getenv('PRICE')
-RETURN_URL = os.getenv('RETURN_URL')
-
 
 class Payment:
     def __init__(self):
         self.__DESCRIPTION = "Оплата пользователя"
         self.__payment_id = None
 
-    def create_payment(self, callback, user_name):
+    def create_payment(self, callback, user_name, price, return_url):
         payment = pmt.create({
             "amount": {
-                "value": PRICE,
+                "value": price,
                 "currency": "RUB"
             },
             "payment_method_data": {
@@ -35,7 +32,7 @@ class Payment:
             },
             "confirmation": {
                 "type": "redirect",
-                "return_url": RETURN_URL
+                "return_url": return_url
             },
             "capture": True,
             "description": f"{self.__DESCRIPTION}: {user_name}"
@@ -57,6 +54,4 @@ class Payment:
             payment = json.loads((pmt.find_one(self.__payment_id)).json())
             time.sleep(3)
 
-        asyncio.run_coroutine_threadsafe(
-            callback(payment['status'] == 'succeeded'),
-            loop=event_loop)
+        callback(payment['status'] == 'succeeded')
