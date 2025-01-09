@@ -11,16 +11,18 @@ func main() {
 		fmt.Println("No .env file found")
 	}
 
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
+	db_user := os.Getenv("DB_USER")
+	db_password := os.Getenv("DB_PASSWORD")
+	db_host := os.Getenv("DB_HOST")
+	db_port := os.Getenv("DB_PORT")
 	db_name := os.Getenv("DB_NAME")
-	ssl := os.Getenv("DB_SSL")
+	db_ssl := os.Getenv("DB_SSL")
 
-	db := GetDBClient(user, password, host, port, db_name, ssl)
-	go db.AddPass("1", "yakiza", []string{"hello", "hi"})
-	go db.AddPayment("1")
-	for {
-	}
+	srv_host := os.Getenv("SRV_HOST")
+	srv_port := os.Getenv("SRV_PORT")
+
+	db := GetDBClient(db_user, db_password, db_host, db_port, db_name, db_ssl)
+	svr := GetServer(srv_host, srv_port, db)
+
+	svr.StartServing()
 }
