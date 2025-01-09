@@ -38,6 +38,17 @@ func CreateConnection(user, password, host, port, db_name, sslmode string) Datab
 		panic(err)
 	}
 
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS tests (
+        user_id text PRIMARY KEY,
+        user_name char(32),
+        last_test_result char(20)[],
+        pass_count integer NOT NULL,
+        payment_count integer NOT NULL
+    )`)
+	if err != nil {
+		panic(err)
+	}
+
 	return DatabaseClient{db}
 }
 
