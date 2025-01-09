@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -62,6 +63,7 @@ func (s Server) StartServing() {
 	http.HandleFunc("/add_payment", s.post_add_payment)
 	http.HandleFunc("/add_pass", s.post_add_pass)
 
+	log.Println("Start listen on " + s.port + " port")
 	err := http.ListenAndServe(s.host+":"+s.port, nil)
 	if errors.Is(err, http.ErrServerClosed) {
 		fmt.Println("Server closed")
