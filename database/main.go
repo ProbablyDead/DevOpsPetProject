@@ -18,6 +18,9 @@ func main() {
 	db_name := os.Getenv("DB_NAME")
 	ssl := os.Getenv("DB_SSL")
 
-	db := CreateConnection(user, password, host, port, db_name, ssl)
-	fmt.Println(db.Ping())
+	db := GetDBClient(user, password, host, port, db_name, ssl)
+	go db.AddPass("1", "yakiza", []string{"hello", "hi"})
+	go db.AddPayment("1")
+	for {
+	}
 }

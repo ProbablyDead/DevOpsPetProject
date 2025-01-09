@@ -1,65 +1,124 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
-	_ "github.com/lib/pq"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type DatabaseClientInterface interface {
-	Ping() bool
+	AddPass(user_id, user_name string, test_result []string)
+	AddPayment(user_id string)
 }
 
-func CreateConnection(user, password, host, port, db_name, sslmode string) DatabaseClientInterface {
-	const driver = "postgres"
-	connStr := fmt.Sprintf("user=%v password=%v host=%v port=%v sslmode=%v",
-		user, password, host, port, sslmode)
+const DATABASE_NAME string = "telegram"
+const TABLE_NAME string = "tests"
 
-	db, err := sql.Open(driver, connStr)
-	if err != nil {
-		panic(err)
-	}
+func GetDBClient(user, password, host, port, db_name, sslmode string) DatabaseClientInterface {
+	dbc := DatabaseClient{get_connection_string(user, password, host, port, sslmode)}
+	create_and_add_connection_to_database(&dbc)
+	return dbc
+}
+
+func get_connection_string(user, password, host, port, sslmode string) string {
+	return fmt.Sprintf("user=%v password=%v host=%v port=%v sslmode=%v",
+		user, password, host, port, sslmode)
+}
+
+func create_and_add_connection_to_database(dbc *DatabaseClient) {
+	dbpool := dbc.get_pool()
 
 	var exists bool
-	err = db.QueryRow("SELECT EXISTS (SELECT FROM pg_database WHERE datname = $1)", db_name).Scan(&exists)
+	err := dbpool.QueryRow(context.Background(),
+		"SELECT EXISTS (SELECT FROM pg_database WHERE datname = $1)",
+		DATABASE_NAME).Scan(&exists)
 	if err != nil {
 		panic(err)
 	}
 
 	if !exists {
-		_, err := db.Exec("CREATE DATABASE " + db_name)
+		_, err := dbpool.Exec(context.Background(), "CREATE DATABASE "+DATABASE_NAME)
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	db, err = sql.Open(driver, connStr+" dbname="+db_name)
+	dbpool.Close()
+
+	dbc.connection_str += " dbname=" + DATABASE_NAME
+	dbpool = dbc.get_pool()
+	defer dbpool.Close()
+
+	_, err = dbpool.Exec(context.Background(),
+		`CREATE TABLE IF NOT EXISTS `+TABLE_NAME+` (
+	       user_id text PRIMARY KEY,
+	       user_name varchar(32),
+	       test_result varchar(20)[],
+	       pass_count integer NOT NULL,
+	       payment_count integer NOT NULL
+	   )`)
 	if err != nil {
 		panic(err)
 	}
-
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS tests (
-        user_id text PRIMARY KEY,
-        user_name char(32),
-        last_test_result char(20)[],
-        pass_count integer NOT NULL,
-        payment_count integer NOT NULL
-    )`)
-	if err != nil {
-		panic(err)
-	}
-
-	return DatabaseClient{db}
 }
 
 type DatabaseClient struct {
-	db *sql.DB
+	connection_str string
 }
 
-func (dbc DatabaseClient) Ping() bool {
-	err := dbc.db.Ping()
+func (dbc DatabaseClient) get_pool() *pgxpool.Pool {
+	dbpool, err := pgxpool.New(context.Background(), dbc.connection_str)
 	if err != nil {
-		return false
+		panic(err)
 	}
-	return true
+	return dbpool
+}
+
+// AddPass implements DatabaseClientInterface.
+func (dbc DatabaseClient) AddPass(user_id string, user_name string, test_result []string) {
+	dbpool := dbc.get_pool()
+	defer dbpool.Close()
+
+	var exists bool
+	err := dbpool.QueryRow(context.Background(),
+		"SELECT EXISTS(SELECT 1 FROM "+TABLE_NAME+" WHERE user_id=$1)",
+		user_id).Scan(&exists)
+	if err != nil {
+		panic(err)
+	}
+
+	if exists {
+		_, err = dbpool.Query(context.Background(),
+			`UPDATE `+TABLE_NAME+
+				` SET user_name = $1, test_result = $2, pass_count = pass_count + 1
+                WHERE user_id = $3
+            `, user_name, test_result, user_id)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		_, err = dbpool.Query(context.Background(),
+			`INSERT INTO `+TABLE_NAME+` (user_id, user_name, test_result, pass_count, payment_count)
+        VALUES($1, $2, $3, $4, $5)
+        `, user_id, user_name, test_result, 1, 0)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+// AddPayment implements DatabaseClientInterface.
+func (dbc DatabaseClient) AddPayment(user_id string) {
+	dbpool := dbc.get_pool()
+	defer dbpool.Close()
+
+	_, err := dbpool.Query(context.Background(),
+		`UPDATE `+TABLE_NAME+
+			` SET payment_count = payment_count + 1
+            WHERE user_id = $1
+        `, user_id)
+	if err != nil {
+		panic(err)
+	}
 }
