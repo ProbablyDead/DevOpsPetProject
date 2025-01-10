@@ -27,6 +27,15 @@ services:
       - 8001:8001
     env_file:
         - ./database/.env
+  image_processor:
+    image: image_processor
+    container_name: image_processor
+    networks:
+      - network
+    ports: 
+      - 8080:8080
+    environment:
+      PORT: 8080
 
 networks:
     network:
