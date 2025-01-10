@@ -7,7 +7,7 @@ WORKDIR /app
 COPY database/go.mod database/go.sum ./
 RUN go mod download
 
-COPY database/*.go ./
+COPY src/*.go ./
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux go build -o /database
