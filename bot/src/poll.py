@@ -8,13 +8,15 @@ from dotenv import load_dotenv
 
 from contextlib import suppress
 from io import BytesIO
+from PIL import Image
 
 from .tele_test import QUESTION_COUNT, test
 # from database import Database
-# from result_image import ResultImage
+from .result_image import ResultImage
 
 import asyncio
 import os
+import json
 
 router = Router()
 # database = Database()
@@ -45,15 +47,17 @@ class last_question(StatesGroup):
 async def start_test(message: types.Message):
     # database.create_db_str(message.from_user.id, message.from_user.username)
 
-    await set_question(0, message=message, first=True)
+    await set_question(0, [], message=message, first=True)
 
 
-def form_buttons(q_num: int, ingredients: list[str]):
-    def button(i): return types.InlineKeyboardButton(text=str(i),
-                                                     callback_data=f"answer_{q_num}_{ingredients[i-1] if ingredients else ''}")
+def form_buttons(q_num: int, chooses: list[int]):
+    def button(i):
+        string = f"answer_{q_num}_?_{
+            json.dumps(chooses+[i-1], separators=(',', ':'))}"
+        return types.InlineKeyboardButton(text=str(i), callback_data=string)
 
     back_button = [types.InlineKeyboardButton(
-        text="Назад ↩", callback_data=f"answer_{q_num}_!")]
+        text="Назад ↩", callback_data=f"answer_{q_num}_!_{chooses[:-1]}")]
 
     buttons = [[button(i), button(i+1)] for i in range(1, 5, 2)]
 
@@ -64,7 +68,11 @@ def form_buttons(q_num: int, ingredients: list[str]):
     return keyboard
 
 
-async def set_question(num: int, message: types.Message, state=None, first: bool = False):
+async def set_question(num: int,
+                       chooses: list[int],
+                       message: types.Message,
+                       state=None,
+                       first: bool = False):
     q = test[num]
     text = f"{num+1}/{QUESTION_COUNT}\n\n<b>{q['title']}</b>"
 
@@ -74,17 +82,13 @@ async def set_question(num: int, message: types.Message, state=None, first: bool
         for i in range(len(options)):
             text += f'\n\t {i+1}. {options[i]}'
 
-    ingredients = q["ingredients"]
-    ingredientsID = q["ingredientsID"]
-    ingredients_with_ids = [f"{id}:{name}" for id,
-                            name in zip(ingredientsID, ingredients)]
-
     if q["type"] == "open":
         await state.set_state(last_question.view_quest)
+        await state.update_data(chooses=chooses)
         await message.edit_text(text)
         return
 
-    buttons = form_buttons(num, ingredients_with_ids)
+    buttons = form_buttons(num, chooses)
 
     if not first:
         with suppress(TelegramBadRequest):
@@ -95,56 +99,66 @@ async def set_question(num: int, message: types.Message, state=None, first: bool
 
 @router.callback_query(F.data.startswith("answer"))
 async def test_routing(callback: types.CallbackQuery, state: FSMContext):
-    _, num, ingredient = callback.data.split("_")
+    _, num, operation, chooses = callback.data.split("_")
+    chooses = json.loads(chooses)
     num = int(num)
 
-    if ingredient == '!':
+    if operation == '!':
         await state.clear()
-        await set_question(num - 1, callback.message, state=state)
+        await set_question(num - 1, chooses, callback.message, state=state)
         return
 
-    # if ingredient:
-        # database.update_db_question_array(callback.from_user.id,
-        #                                   num,
-        #                                   ingredient)
-
-    await set_question(num + 1, callback.message, state=state)
+    await set_question(num + 1, chooses, callback.message, state=state)
 
 
 @router.message(last_question.view_quest)
 async def answer(message: types.Message, state: FSMContext):
     if len(str(message.text)) > 20:
-        await message.answer("Пожалуйста, укажи название \
-                             длинной не более 20 символов")
+        await message.answer("Пожалуйста, укажи название длинной не более 20 символов")
         return
+
+    user_data = await state.get_data()
+    chooses = user_data.get("chooses")
 
     # database.update_db_question_array(message.from_user.id,
     #                                   QUESTION_COUNT-1,
     #                                   str(message.text))
     # result = list(filter(None,
     #                      database.get_db_question_array_after_complete(
-    #                          message.from_user.id
-    #                          )))
+    # message.from_user.id
+    # )))
+    #
+    #
+    result = {
+        "ingredients": [
+            {
+                "id": q["ingredientsID"][a],
+                "name": q["ingredients"][a]
+            } for q, a in zip(test, chooses)
+        ],
+        "title": message.text
+    }
 
     # ids = [s.split(':')[0] for s in result[:-1]]
     # names = [s.split(':')[1] for s in result[:-1]]
     # title = result[-1]
-    #
-    # async def create_image_and_answer():
-    #     bio = BytesIO()
-    #     bio.name = 'result.jpeg'
-    #
-    #     img = ResultImage.result_image(ids, names, title)
-    #
-    #     img.save(bio, "JPEG")
-    #     bio.seek(0)
-    #
-    #     await message.answer_photo(photo=types.BufferedInputFile(bio.getvalue(),
-    #                                                              "result.jpeg"),
-    #         caption=f'Спасибо за прохождение теста!\
-    #                                Ты сможешь заказать этот аромат объемом 6мл по цене {PRICE.partition(".")[0]} рублей, нажав *"Заказать аромат"*',
-    #                                reply_markup=reply_keyboard(), parse_mode="Markdown")
-    #
-    #     await state.clear()
-    #
-    # asyncio.run_coroutine_threadsafe(create_image_and_answer(), loop=asyncio.get_event_loop())
+
+    async def create_image_and_answer():
+        bio = BytesIO()
+        bio.name = 'result.jpeg'
+
+        img = Image.open(BytesIO(ResultImage.result_image(result)))
+
+        img.save(bio, "JPEG")
+        bio.seek(0)
+
+        await message.answer_photo(photo=types.BufferedInputFile(bio.getvalue(),
+                                                                 "result.jpeg"),
+                                   caption=f'Спасибо за прохождение теста!\
+            Ты сможешь заказать этот аромат объемом 6мл по цене {PRICE.partition(".")[0]} рублей, нажав *"Заказать аромат"*',
+                                   reply_markup=reply_keyboard(), parse_mode="Markdown")
+
+        await state.clear()
+
+    asyncio.run_coroutine_threadsafe(
+        create_image_and_answer(), loop=asyncio.get_event_loop())
