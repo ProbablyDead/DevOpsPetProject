@@ -4,7 +4,7 @@ from random import choice
 
 class ResultImage:
     __COUNT_OF_INGREDIENTS = 6
-    __path_to_refs = "./image_processor/references"
+    __path_to_refs = "./src/references"
 
     __templates = [__path_to_refs + "/templates/B1.jpg",
                    __path_to_refs + "/templates/B2.jpg",
@@ -80,19 +80,18 @@ class ResultImage:
                        mask=fontimage)
 
     @staticmethod
-    def result_image(ids, names, title):
+    def result_image(ingredients, title):
         with Image.open(choice(ResultImage.__templates)) as working_template:
             working_template.load()
 
-        for id, name, place, i in zip(ids[:ResultImage.__COUNT_OF_INGREDIENTS],
-                                      names[:ResultImage.__COUNT_OF_INGREDIENTS],
-                                      ResultImage.__images_place,
-                                      range(ResultImage.__COUNT_OF_INGREDIENTS)):
-            with Image.open(ResultImage.__get_image(id)) as note:
+        for ingredient, place, i in zip(ingredients[:ResultImage.__COUNT_OF_INGREDIENTS],
+                                        ResultImage.__images_place,
+                                        range(ResultImage.__COUNT_OF_INGREDIENTS)):
+            with Image.open(ResultImage.__get_image(ingredient["id"])) as note:
                 note.load()
                 working_template.paste(note.resize(
                     ResultImage.__image_size), place)
-                ResultImage.__paste_ingredient_title(working_template, name,
+                ResultImage.__paste_ingredient_title(working_template, ingredient["name"],
                                                      place, middle=not (i == 0 or i == 5))
 
         ResultImage.__paste_perfume_title(working_template, title)
