@@ -12,5 +12,5 @@ ADD ./ ./
 
 EXPOSE 8080/tcp
 
-ENTRYPOINT [ "python", "-m", "image_processor" ]
+ENTRYPOINT [ "python", "-m", "src" ]
 
