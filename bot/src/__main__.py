@@ -15,9 +15,7 @@ from .start import *
 
 class TelegramBot:
     def __init__(self) -> None:
-        # load env
         load_dotenv()
-
         BOT_TOKEN = os.getenv('BOT_TOKEN')
 
         if BOT_TOKEN is None:
