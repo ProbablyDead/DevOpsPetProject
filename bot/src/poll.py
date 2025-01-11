@@ -11,7 +11,7 @@ from io import BytesIO
 from PIL import Image
 
 from .tele_test import QUESTION_COUNT, test
-# from database import Database
+from .database import Database
 from .result_image import ResultImage
 
 import asyncio
@@ -19,7 +19,7 @@ import os
 import json
 
 router = Router()
-# database = Database()
+database = Database()
 
 load_dotenv()
 PRICE = os.getenv('PRICE')
@@ -45,8 +45,6 @@ class last_question(StatesGroup):
 
 
 async def start_test(message: types.Message):
-    # database.create_db_str(message.from_user.id, message.from_user.username)
-
     await set_question(0, [], message=message, first=True)
 
 
@@ -120,15 +118,6 @@ async def answer(message: types.Message, state: FSMContext):
     user_data = await state.get_data()
     chooses = user_data.get("chooses")
 
-    # database.update_db_question_array(message.from_user.id,
-    #                                   QUESTION_COUNT-1,
-    #                                   str(message.text))
-    # result = list(filter(None,
-    #                      database.get_db_question_array_after_complete(
-    # message.from_user.id
-    # )))
-    #
-    #
     result = {
         "ingredients": [
             {
@@ -139,9 +128,12 @@ async def answer(message: types.Message, state: FSMContext):
         "title": message.text
     }
 
-    # ids = [s.split(':')[0] for s in result[:-1]]
-    # names = [s.split(':')[1] for s in result[:-1]]
-    # title = result[-1]
+    result_for_db = [
+        ingredient["name"] for ingredient in result["ingredients"]
+    ] + [result["title"]]
+
+    database.add_pass(str(message.from_user.id),
+                      message.from_user.username, result_for_db)
 
     async def create_image_and_answer():
         bio = BytesIO()
