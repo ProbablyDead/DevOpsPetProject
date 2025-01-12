@@ -14,6 +14,8 @@ from .start import *
 
 
 class TelegramBot:
+    bot = None
+
     def __init__(self) -> None:
         load_dotenv()
         BOT_TOKEN = os.getenv('BOT_TOKEN')
@@ -24,8 +26,8 @@ class TelegramBot:
 
         logging.basicConfig(level=logging.INFO)
 
-        self.bot = Bot(token=BOT_TOKEN,
-                       default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+        TelegramBot.bot = Bot(token=BOT_TOKEN,
+                              default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
         self.dp = Dispatcher()
         self.dp.include_router(router)

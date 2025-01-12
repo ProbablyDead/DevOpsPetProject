@@ -1,62 +1,31 @@
 import os
-import json
-import time
 import asyncio
+import requests
 from threading import Thread
+from dotenv import load_dotenv
 
-# from dotenv import load_dotenv
+load_dotenv()
 
-from yookassa import Configuration, Payment as pmt
-
-# load_dotenv()
-
-SHOP_ID = os.getenv('SHOP_ID')
-SHOP_KEY = os.getenv('SHOP_KEY')
-
-Configuration.configure(SHOP_ID, SHOP_KEY)
+PAYMENT_HOST = os.getenv('PAYMENT_HOST')
+PAYMENT_PORT = os.getenv('PAYMENT_PORT')
+PAYMENT_CONNECTION_STRING = f"http://{PAYMENT_HOST}:{PAYMENT_PORT}"
 
 PRICE = os.getenv('PRICE')
 RETURN_URL = os.getenv('RETURN_URL')
 
 
 class Payment:
-    def __init__(self):
-        self._DESCRIPTION = "Оплата пользователя"
-        self._payment_id = None
+    @classmethod
+    def create_payment(_, user_id, user_name, callback):
+        data = {
+            "user_id": user_id,
+            "user_name": user_name,
+            "price": PRICE,
+            "web_hook": "http://google.com",
+            "return_url": RETURN_URL
+        }
 
-    def create_payment(self, callback, user_name):
-        payment = pmt.create({
-            "amount": {
-                "value": PRICE,
-                "currency": "RUB"
-            },
-            "payment_method_data": {
-                "type": "bank_card"
-            },
-            "confirmation": {
-                "type": "redirect",
-                "return_url": RETURN_URL
-            },
-            "capture": True,
-            "description": f"{self._DESCRIPTION}: {user_name}"
-        })
+        responce = requests.post(
+            PAYMENT_CONNECTION_STRING+"/create_payment", json=data)
 
-        payment_data = json.loads(payment.json())
-        self._payment_id = payment_data['id']
-
-        # Run in parallel thread
-        Thread(target=self._check_payment,
-               args=(callback, asyncio.get_event_loop())).start()
-
-        return (payment_data['confirmation'])['confirmation_url']
-
-    # callback - (bool) => None
-    def _check_payment(self, callback, event_loop):
-        payment = json.loads((pmt.find_one(self._payment_id)).json())
-        while payment['status'] == 'pending':
-            payment = json.loads((pmt.find_one(self._payment_id)).json())
-            time.sleep(3)
-
-        asyncio.run_coroutine_threadsafe(
-            callback(payment['status'] == 'succeeded'),
-            loop=event_loop)
+        return responce.content.decode("utf-8")

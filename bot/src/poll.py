@@ -19,7 +19,6 @@ import os
 import json
 
 router = Router()
-database = Database()
 
 load_dotenv()
 PRICE = os.getenv('PRICE')
@@ -132,7 +131,7 @@ async def answer(message: types.Message, state: FSMContext):
         ingredient["name"] for ingredient in result["ingredients"]
     ] + [result["title"]]
 
-    database.add_pass(str(message.from_user.id),
+    Database.add_pass(str(message.from_user.id),
                       message.from_user.username, result_for_db)
 
     async def create_image_and_answer():
