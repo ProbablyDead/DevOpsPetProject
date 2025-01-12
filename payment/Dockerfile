@@ -12,5 +12,5 @@ ADD ./ ./
 
 EXPOSE 8080/tcp
 
-ENTRYPOINT [ "python", "-m", "payment" ]
+ENTRYPOINT [ "python", "-m", "src" ]
 
