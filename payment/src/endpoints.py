@@ -1,5 +1,5 @@
 from bottle import Bottle, request
-from .payment import Payment
+from .payment.payment import Payment
 from http import client
 import json
 
