@@ -1,0 +1,6 @@
+requests==2.32.3
+aiogram==3.4.1
+python-dotenv==1.0.1
+pillow==10.2.0
+bottle==0.13.0
+aiohttp
