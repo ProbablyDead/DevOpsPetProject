@@ -14,6 +14,10 @@ services:
       - 5432:5432
     env_file:
       - ./database/.env
+    volumes:
+          - type: bind
+            source: ./postgres_data
+            target: /var/lib/postgresql/data/
   db:
     depends_on:
       postgres: 
