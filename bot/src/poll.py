@@ -10,7 +10,7 @@ from contextlib import suppress
 from io import BytesIO
 from PIL import Image
 
-from .tele_test import QUESTION_COUNT, test
+from .load_test import QUESTION_COUNT, test
 from .database import Database
 from .result_image import ResultImage
 

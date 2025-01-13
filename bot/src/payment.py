@@ -22,6 +22,9 @@ PAYMENT_WEB_HOOK_PORT = int(os.getenv("PAYMENT_WEB_HOOK_PORT"))
 
 
 class Payment:
+    success_payment_callback = None
+    failure_payment_callback = None
+
     @classmethod
     def create_payment(_, user_id, user_name):
         data = {
@@ -46,22 +49,12 @@ def root():
     return "root"
 
 
-# ll = asyncio.new_event_loop()
-#
-#
-# def create_event_loop():
-#     asyncio.set_event_loop(ll)
-#     ll.run_forever()
-
-
-# thread = Thread(target=create_event_loop, daemon=True)
-# thread.start()
-
-
 async def web_hook_callback(user_id, result):
-    await Database.add_payment(user_id)
-    # async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
-    #     session.post()
+    if result:
+        await Database.add_payment(user_id)
+        await Payment.success_payment_callback(user_id)
+    else:
+        await Payment.failure_payment_callback(user_id)
 
 
 @app.post(WEB_HOOK_PATH)
