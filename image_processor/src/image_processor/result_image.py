@@ -4,7 +4,7 @@ from random import choice
 
 class ResultImage:
     __COUNT_OF_INGREDIENTS = 6
-    __path_to_refs = "./src/references"
+    __path_to_refs = "./src/image_processor/references"
 
     __templates = [__path_to_refs + "/templates/B1.jpg",
                    __path_to_refs + "/templates/B2.jpg",
