@@ -1,21 +1,19 @@
 import asyncio
 import logging
 
-from dotenv import load_dotenv
 import os
+
+from dotenv import load_dotenv
 
 from aiogram.client.default import DefaultBotProperties
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 
 from .poll import router
-
 from .start import *
 
 
 class TelegramBot:
-    bot = None
-
     def __init__(self) -> None:
         load_dotenv()
         BOT_TOKEN = os.getenv('BOT_TOKEN')
@@ -26,8 +24,8 @@ class TelegramBot:
 
         logging.basicConfig(level=logging.INFO)
 
-        TelegramBot.bot = Bot(token=BOT_TOKEN,
-                              default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+        self.bot = Bot(token=BOT_TOKEN,
+                       default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
         self.dp = Dispatcher()
         self.dp.include_router(router)

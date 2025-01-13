@@ -1,5 +1,6 @@
 import os
 import requests
+import aiohttp
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,8 +22,8 @@ class Database:
         requests.post(DB_CONNECTION_STRING+"/add_pass", json=data)
 
     @classmethod
-    def add_payment(_, user_id):
-        data = {
-            "user_id": user_id
-        }
-        requests.post(DB_CONNECTION_STRING+"/add_payment", json=data)
+    async def add_payment(_, user_id):
+        async with aiohttp.ClientSession(
+                connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
+            data = {"user_id": user_id}
+            await session.post(DB_CONNECTION_STRING+'/add_payment', json=data)
