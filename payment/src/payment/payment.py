@@ -39,8 +39,14 @@ class Payment:
     # callback - (bool) => None
     def __check_payment(self, callback, event_loop):
         payment = json.loads((pmt.find_one(self.__payment_id)).json())
+        waiting_time = 3
+        cycle_sum = 0
+        max_cycles = 10*60/waiting_time  # 10 min
         while payment['status'] == 'pending':
+            if cycle_sum > max_cycles:
+                break
             payment = json.loads((pmt.find_one(self.__payment_id)).json())
-            time.sleep(3)
+            cycle_sum += 1
+            time.sleep(waiting_time)
 
         callback(payment['status'] == 'succeeded')
