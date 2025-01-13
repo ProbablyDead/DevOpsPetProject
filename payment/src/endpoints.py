@@ -1,6 +1,6 @@
 from bottle import Bottle, request
-from .payment import Payment
-from http import client
+from .payment.payment import Payment
+import requests
 import json
 
 child_app = Bottle()
@@ -17,10 +17,6 @@ def create_payment():
     return_url = data['return_url']
 
     def callback(result):
-        body = json.dumps({"user_id": user_id, "result": result})
-        headers = {'Content-type': 'application/json'}
-
-        client.HTTPConnection(web_hook['host']). \
-            request("POST", "/" + web_hook['url'], body=body, headers=headers)
+        requests.post(web_hook, json={"user_id": user_id, "result": result})
 
     return Payment().create_payment(callback, user_name, price, return_url)

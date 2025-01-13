@@ -10,7 +10,7 @@ MLTL
 
 ADD ./ ./
 
-EXPOSE 8080/tcp
+EXPOSE 8082/tcp
 
-ENTRYPOINT [ "python", "-m", "payment" ]
+ENTRYPOINT [ "python", "-m", "src" ]
 
