@@ -12,7 +12,7 @@ async def proceed(function, data):
     function(**json.load(data))
 
 
-@child_app.post('/update_test')
+@child_app.post('/add_pass')
 def update_test():
     asyncio.run(proceed(api.update_test, request.body))
 
