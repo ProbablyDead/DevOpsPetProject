@@ -18,13 +18,13 @@ services:
           - type: bind
             source: ./postgres_data
             target: /var/lib/postgresql/data/
-  db:
+  database:
     depends_on:
       postgres: 
         condition: service_healthy
         restart: true
     image: database
-    container_name: db
+    container_name: database
     networks:
       - network
     ports: 
