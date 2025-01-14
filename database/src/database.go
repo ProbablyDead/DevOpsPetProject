@@ -8,8 +8,10 @@ import (
 )
 
 type DatabaseClientInterface interface {
-	AddPass(user_id, user_name string, test_result []string)
-	AddPayment(user_id string)
+	AddPass(user_id, user_name string, test_result []string, done chan bool)
+	AddPayment(user_id string, done chan bool)
+	GetPassCount(user_id string, ch chan int)
+	GetPaymentCount(user_id string, ch chan int)
 }
 
 const DATABASE_NAME string = "telegram"
@@ -67,6 +69,41 @@ type DatabaseClient struct {
 	connection_str string
 }
 
+// GetPassCount implements DatabaseClientInterface.
+func (dbc DatabaseClient) GetPassCount(user_id string, ch chan int) {
+	dbpool := dbc.get_pool()
+	defer dbpool.Close()
+
+	var row int
+	err := dbpool.QueryRow(context.Background(),
+		`SELECT pass_count FROM `+TABLE_NAME+
+			` WHERE user_id = $1
+        `, user_id).Scan(&row)
+	if err != nil {
+		panic(err)
+	}
+
+	ch <- row
+}
+
+// GetPaymentCount implements DatabaseClientInterface.
+func (dbc DatabaseClient) GetPaymentCount(user_id string, ch chan int) {
+	dbpool := dbc.get_pool()
+	defer dbpool.Close()
+
+	var row int
+	err := dbpool.QueryRow(context.Background(),
+		`SELECT payment_count FROM `+TABLE_NAME+
+			` WHERE user_id = $1
+        `, user_id).Scan(&row)
+	if err != nil {
+		ch <- -1
+		return
+	}
+
+	ch <- row
+}
+
 func (dbc DatabaseClient) get_pool() *pgxpool.Pool {
 	dbpool, err := pgxpool.New(context.Background(), dbc.connection_str)
 	if err != nil {
@@ -76,16 +113,20 @@ func (dbc DatabaseClient) get_pool() *pgxpool.Pool {
 }
 
 // AddPass implements DatabaseClientInterface.
-func (dbc DatabaseClient) AddPass(user_id string, user_name string, test_result []string) {
+func (dbc DatabaseClient) AddPass(user_id string, user_name string, test_result []string, done chan bool) {
 	dbpool := dbc.get_pool()
 	defer dbpool.Close()
+
+	d := true
+	defer func() { done <- d }()
 
 	var exists bool
 	err := dbpool.QueryRow(context.Background(),
 		"SELECT EXISTS(SELECT 1 FROM "+TABLE_NAME+" WHERE user_id=$1)",
 		user_id).Scan(&exists)
 	if err != nil {
-		panic(err)
+		d = false
+		return
 	}
 
 	if exists {
@@ -95,7 +136,8 @@ func (dbc DatabaseClient) AddPass(user_id string, user_name string, test_result 
                 WHERE user_id = $3
             `, user_name, test_result, user_id)
 		if err != nil {
-			panic(err)
+			d = false
+			return
 		}
 	} else {
 		_, err = dbpool.Query(context.Background(),
@@ -103,15 +145,19 @@ func (dbc DatabaseClient) AddPass(user_id string, user_name string, test_result 
         VALUES($1, $2, $3, $4, $5)
         `, user_id, user_name, test_result, 1, 0)
 		if err != nil {
-			panic(err)
+			d = false
+			return
 		}
 	}
 }
 
 // AddPayment implements DatabaseClientInterface.
-func (dbc DatabaseClient) AddPayment(user_id string) {
+func (dbc DatabaseClient) AddPayment(user_id string, done chan bool) {
 	dbpool := dbc.get_pool()
 	defer dbpool.Close()
+
+	d := true
+	defer func() { done <- d }()
 
 	_, err := dbpool.Query(context.Background(),
 		`UPDATE `+TABLE_NAME+
@@ -119,6 +165,6 @@ func (dbc DatabaseClient) AddPayment(user_id string) {
             WHERE user_id = $1
         `, user_id)
 	if err != nil {
-		panic(err)
+		d = false
 	}
 }

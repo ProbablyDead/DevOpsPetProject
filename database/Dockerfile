@@ -4,13 +4,16 @@ FROM golang:1.23.4-alpine AS build-stage
 WORKDIR /app
 
 # Download Go modules
-COPY src/go.mod src/go.sum ./
+ENV GOFLAGS=-work
+
+COPY src/go.mod src/go.sum ./src/
+COPY go.work go.work.sum ./
 RUN go mod download
 
-COPY src/*.go ./
+COPY src/*.go ./src/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux go build -o /src
+RUN CGO_ENABLED=0 GOOS=linux go build -o ./bin/database ./src/
 
 #######
 # Run app
@@ -19,7 +22,7 @@ FROM alpine
 
 WORKDIR /app
 
-COPY --from=build-stage /src src
+COPY --from=build-stage /app/bin/database ./bin/database
 
 # Run
-CMD ["./src"]
+CMD ["./bin/database"]

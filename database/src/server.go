@@ -13,8 +13,12 @@ type ServerInterface interface {
 	StartServing()
 }
 
-func GetServer(host, port string, db_client DatabaseClientInterface) ServerInterface {
-	return Server{host: host, port: port, db_client: db_client}
+func GetServer(host, port string, db_client DatabaseClientInterface, reporting_client ReportingClientInterface) ServerInterface {
+	return Server{
+		host:             host,
+		port:             port,
+		db_client:        db_client,
+		reporting_client: reporting_client}
 }
 
 func (s *Server) get_root(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +40,13 @@ func (s Server) post_add_payment(_ http.ResponseWriter, r *http.Request) {
 	user := User{}
 	json.Unmarshal(b, &user)
 
-	go s.db_client.AddPayment(user.UserID)
+	done := make(chan bool)
+	go s.db_client.AddPayment(user.UserID, done)
+	if <-done {
+		ch := make(chan int)
+		go s.db_client.GetPaymentCount(user.UserID, ch)
+		go s.reporting_client.AddPayment(user.UserID, <-ch)
+	}
 }
 
 func (s Server) post_add_pass(_ http.ResponseWriter, r *http.Request) {
@@ -48,13 +58,20 @@ func (s Server) post_add_pass(_ http.ResponseWriter, r *http.Request) {
 	user := User{}
 	json.Unmarshal(b, &user)
 
-	go s.db_client.AddPass(user.UserID, user.Username, user.TestResult)
+	done := make(chan bool)
+	go s.db_client.AddPass(user.UserID, user.Username, user.TestResult, done)
+	if <-done {
+		ch := make(chan int)
+		go s.db_client.GetPassCount(user.UserID, ch)
+		go s.reporting_client.AddPass(user.UserID, user.Username, user.TestResult, <-ch)
+	}
 }
 
 type Server struct {
-	host      string
-	port      string
-	db_client DatabaseClientInterface
+	host             string
+	port             string
+	db_client        DatabaseClientInterface
+	reporting_client ReportingClientInterface
 }
 
 // StartServing implements ServerInterface.
