@@ -4,13 +4,13 @@ FROM golang:1.23.4-alpine AS build-stage
 WORKDIR /app
 
 # Download Go modules
-COPY database/go.mod database/go.sum ./
+COPY src/go.mod src/go.sum ./
 RUN go mod download
 
 COPY src/*.go ./
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux go build -o /database
+RUN CGO_ENABLED=0 GOOS=linux go build -o /src
 
 #######
 # Run app
@@ -19,9 +19,7 @@ FROM alpine
 
 WORKDIR /app
 
-COPY --from=build-stage /database database
-
-EXPOSE 8001
+COPY --from=build-stage /src src
 
 # Run
-CMD ["./database"]
+CMD ["./src"]
