@@ -79,11 +79,11 @@ func (dbc DatabaseClient) GetPassCount(user_id string, ch chan int) {
 		`SELECT pass_count FROM `+TABLE_NAME+
 			` WHERE user_id = $1
         `, user_id).Scan(&row)
-
-	ch <- row
 	if err != nil {
 		panic(err)
 	}
+
+	ch <- row
 }
 
 // GetPaymentCount implements DatabaseClientInterface.
@@ -96,11 +96,12 @@ func (dbc DatabaseClient) GetPaymentCount(user_id string, ch chan int) {
 		`SELECT payment_count FROM `+TABLE_NAME+
 			` WHERE user_id = $1
         `, user_id).Scan(&row)
+	if err != nil {
+		ch <- -1
+		return
+	}
 
 	ch <- row
-	if err != nil {
-		panic(err)
-	}
 }
 
 func (dbc DatabaseClient) get_pool() *pgxpool.Pool {
@@ -116,12 +117,16 @@ func (dbc DatabaseClient) AddPass(user_id string, user_name string, test_result 
 	dbpool := dbc.get_pool()
 	defer dbpool.Close()
 
+	d := true
+	defer func() { done <- d }()
+
 	var exists bool
 	err := dbpool.QueryRow(context.Background(),
 		"SELECT EXISTS(SELECT 1 FROM "+TABLE_NAME+" WHERE user_id=$1)",
 		user_id).Scan(&exists)
 	if err != nil {
-		panic(err)
+		d = false
+		return
 	}
 
 	if exists {
@@ -131,7 +136,8 @@ func (dbc DatabaseClient) AddPass(user_id string, user_name string, test_result 
                 WHERE user_id = $3
             `, user_name, test_result, user_id)
 		if err != nil {
-			panic(err)
+			d = false
+			return
 		}
 	} else {
 		_, err = dbpool.Query(context.Background(),
@@ -139,10 +145,10 @@ func (dbc DatabaseClient) AddPass(user_id string, user_name string, test_result 
         VALUES($1, $2, $3, $4, $5)
         `, user_id, user_name, test_result, 1, 0)
 		if err != nil {
-			panic(err)
+			d = false
+			return
 		}
 	}
-	done <- true
 }
 
 // AddPayment implements DatabaseClientInterface.
@@ -150,13 +156,15 @@ func (dbc DatabaseClient) AddPayment(user_id string, done chan bool) {
 	dbpool := dbc.get_pool()
 	defer dbpool.Close()
 
+	d := true
+	defer func() { done <- d }()
+
 	_, err := dbpool.Query(context.Background(),
 		`UPDATE `+TABLE_NAME+
 			` SET payment_count = payment_count + 1
             WHERE user_id = $1
         `, user_id)
 	if err != nil {
-		panic(err)
+		d = false
 	}
-	done <- true
 }

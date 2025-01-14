@@ -42,11 +42,11 @@ func (s Server) post_add_payment(_ http.ResponseWriter, r *http.Request) {
 
 	done := make(chan bool)
 	go s.db_client.AddPayment(user.UserID, done)
-	<-done
-
-	ch := make(chan int)
-	go s.db_client.GetPaymentCount(user.UserID, ch)
-	go s.reporting_client.AddPayment(user.UserID, <-ch)
+	if <-done {
+		ch := make(chan int)
+		go s.db_client.GetPaymentCount(user.UserID, ch)
+		go s.reporting_client.AddPayment(user.UserID, <-ch)
+	}
 }
 
 func (s Server) post_add_pass(_ http.ResponseWriter, r *http.Request) {
@@ -60,11 +60,11 @@ func (s Server) post_add_pass(_ http.ResponseWriter, r *http.Request) {
 
 	done := make(chan bool)
 	go s.db_client.AddPass(user.UserID, user.Username, user.TestResult, done)
-	<-done
-
-	ch := make(chan int)
-	go s.db_client.GetPassCount(user.UserID, ch)
-	go s.reporting_client.AddPass(user.UserID, user.Username, user.TestResult, <-ch)
+	if <-done {
+		ch := make(chan int)
+		go s.db_client.GetPassCount(user.UserID, ch)
+		go s.reporting_client.AddPass(user.UserID, user.Username, user.TestResult, <-ch)
+	}
 }
 
 type Server struct {
