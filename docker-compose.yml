@@ -58,6 +58,15 @@ services:
       - 8080:8080
     env_file:
       - ./bot/.env
+  reporting:
+    image: reporting
+    container_name: reporting
+    networks:
+      - network
+    ports: 
+      - 8084:8084
+    env_file:
+      ./reporting/.env
 
 
 networks:
