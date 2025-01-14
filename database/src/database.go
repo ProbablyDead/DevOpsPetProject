@@ -8,8 +8,10 @@ import (
 )
 
 type DatabaseClientInterface interface {
-	AddPass(user_id, user_name string, test_result []string)
-	AddPayment(user_id string)
+	AddPass(user_id, user_name string, test_result []string, done chan bool)
+	AddPayment(user_id string, done chan bool)
+	GetPassCount(user_id string, ch chan int)
+	GetPaymentCount(user_id string, ch chan int)
 }
 
 const DATABASE_NAME string = "telegram"
@@ -67,6 +69,40 @@ type DatabaseClient struct {
 	connection_str string
 }
 
+// GetPassCount implements DatabaseClientInterface.
+func (dbc DatabaseClient) GetPassCount(user_id string, ch chan int) {
+	dbpool := dbc.get_pool()
+	defer dbpool.Close()
+
+	var row int
+	err := dbpool.QueryRow(context.Background(),
+		`SELECT pass_count FROM `+TABLE_NAME+
+			` WHERE user_id = $1
+        `, user_id).Scan(&row)
+
+	ch <- row
+	if err != nil {
+		panic(err)
+	}
+}
+
+// GetPaymentCount implements DatabaseClientInterface.
+func (dbc DatabaseClient) GetPaymentCount(user_id string, ch chan int) {
+	dbpool := dbc.get_pool()
+	defer dbpool.Close()
+
+	var row int
+	err := dbpool.QueryRow(context.Background(),
+		`SELECT payment_count FROM `+TABLE_NAME+
+			` WHERE user_id = $1
+        `, user_id).Scan(&row)
+
+	ch <- row
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (dbc DatabaseClient) get_pool() *pgxpool.Pool {
 	dbpool, err := pgxpool.New(context.Background(), dbc.connection_str)
 	if err != nil {
@@ -76,7 +112,7 @@ func (dbc DatabaseClient) get_pool() *pgxpool.Pool {
 }
 
 // AddPass implements DatabaseClientInterface.
-func (dbc DatabaseClient) AddPass(user_id string, user_name string, test_result []string) {
+func (dbc DatabaseClient) AddPass(user_id string, user_name string, test_result []string, done chan bool) {
 	dbpool := dbc.get_pool()
 	defer dbpool.Close()
 
@@ -106,10 +142,11 @@ func (dbc DatabaseClient) AddPass(user_id string, user_name string, test_result 
 			panic(err)
 		}
 	}
+	done <- true
 }
 
 // AddPayment implements DatabaseClientInterface.
-func (dbc DatabaseClient) AddPayment(user_id string) {
+func (dbc DatabaseClient) AddPayment(user_id string, done chan bool) {
 	dbpool := dbc.get_pool()
 	defer dbpool.Close()
 
@@ -121,4 +158,5 @@ func (dbc DatabaseClient) AddPayment(user_id string) {
 	if err != nil {
 		panic(err)
 	}
+	done <- true
 }
