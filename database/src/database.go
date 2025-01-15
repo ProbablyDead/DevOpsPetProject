@@ -125,8 +125,7 @@ func (dbc DatabaseClient) AddPass(user_id string, user_name string, test_result 
 		"SELECT EXISTS(SELECT 1 FROM "+TABLE_NAME+" WHERE user_id=$1)",
 		user_id).Scan(&exists)
 	if err != nil {
-		d = false
-		return
+		panic(err)
 	}
 
 	if exists {
