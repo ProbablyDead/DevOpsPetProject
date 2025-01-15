@@ -67,9 +67,17 @@ services:
       - 8084:8084
     env_file:
       ./reporting/.env
+    environment:
+      CREDENTIALS_FILE: /run/secrets/google_creds
+    secrets:
+      - google_creds
 
 
 networks:
     network:
       name: network
       driver: bridge
+
+secrets:
+  google_creds:
+    file: ./reporting/src/google_api/secrets/credentials.json
