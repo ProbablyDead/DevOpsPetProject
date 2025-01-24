@@ -24,7 +24,9 @@ services:
       postgres: 
         condition: service_healthy
         restart: true
-    image: database
+    build:
+      context: ./database
+    image: yakiza/database:latest
     container_name: database
     networks:
       - network
@@ -34,7 +36,9 @@ services:
         - ./database/.env
     restart: on-failure
   image_processor:
-    image: image_processor
+    build:
+      context: ./image_processor
+    image: yakiza/image_processor:latest
     container_name: image_processor
     networks:
       - network
@@ -44,7 +48,9 @@ services:
       PORT: 8083
     restart: on-failure
   payment:
-    image: payment
+    build:
+      context: ./payment
+    image: yakiza/payment:latest
     container_name: payment
     networks:
       - network
@@ -54,7 +60,9 @@ services:
       PORT: 8082
     restart: on-failure
   tg_bot:
-    image: tg_bot
+    build:
+      context: ./bot
+    image: yakiza/tg_bot:latest
     container_name: tg_bot
     networks:
       - network
@@ -64,7 +72,9 @@ services:
       - ./bot/.env
     restart: on-failure
   reporting:
-    image: reporting
+    build:
+      context: ./reporting
+    image: yakiza/reporting:latest
     container_name: reporting
     networks:
       - network
