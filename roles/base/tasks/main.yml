@@ -1,0 +1,13 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/base
+- name: Update and upgrade apt packages
+  ansible.builtin.apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400 #One day
+
+- name: Add 'sd' as 'shutdown now' command
+  ansible.builtin.lineinfile:
+    path: "/home/{{ user }}/.bashrc"
+    line: "alias sd='sudo shutdown now'"

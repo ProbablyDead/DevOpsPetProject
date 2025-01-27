@@ -1,0 +1,12 @@
+---
+- name: Configure system
+  hosts: linuxes
+  become: yes
+  vars:
+    user: "{{ ansible_user }}"
+    neovim_version: "0.10.2"
+    configuration_repo: "https://github.com/ProbablyDead/Lazy_nvim.git"
+  roles:
+    - "~/ansible/roles/base"
+    - "~/ansible/roles/nvim-editor"
+    - "~/ansible/roles/learning-k8s"
