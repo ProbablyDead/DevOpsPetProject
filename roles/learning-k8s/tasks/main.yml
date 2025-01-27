@@ -6,6 +6,13 @@
     name: docker.io
     state: present
 
+- name: Add user to docker group
+  ansible.builtin.user:
+    name: "{{ user }}"
+    groups:
+      - "docker"
+    append: true
+    
 - name: Install dependencies
   ansible.builtin.apt:
     pkg:
