@@ -6,6 +6,8 @@
     user: "{{ ansible_user }}"
     neovim_version: "0.10.2"
     configuration_repo: "https://github.com/ProbablyDead/Lazy_nvim.git"
+    k9s_checksum: "sha256:b890a7a212a3fc69e6ea4b2a29d59f80ed501a27ad654c819a155cc7c3c6aa8d"
+    k9s_version: "v0.32.7"
   roles:
     - "~/ansible/roles/base"
     - "~/ansible/roles/nvim-editor"
