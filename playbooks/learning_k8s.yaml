@@ -10,3 +10,4 @@
     - "~/ansible/roles/base"
     - "~/ansible/roles/nvim-editor"
     - "~/ansible/roles/learning-k8s"
+    - "pandemonium1986.k9s"
