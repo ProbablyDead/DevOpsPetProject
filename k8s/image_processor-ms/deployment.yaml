@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image_processor
+  namespace: souvenir
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: image_processor
+  template:
+    metadata:
+      labels: 
+        app: souvenir
+    spec:
+      containers:
+        - name: image-processor
+          image: yakiza/image_processor:latest
+          ports:
+            - containerPort: 8083
+          env:
+            - name: PORT
+              value: "8083"
+
