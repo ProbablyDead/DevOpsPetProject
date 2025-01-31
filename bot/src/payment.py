@@ -10,7 +10,7 @@ from threading import Thread
 load_dotenv()
 
 PAYMENT_HOST = os.getenv('PAYMENT_HOST')
-PAYMENT_PORT = os.getenv('PAYMENT_PORT')
+PAYMENT_PORT = os.getenv('PAYMENT_PORT', 80)
 PAYMENT_CONNECTION_STRING = f"http://{PAYMENT_HOST}:{PAYMENT_PORT}"
 
 PRICE = os.getenv('PRICE')
@@ -18,7 +18,7 @@ RETURN_URL = os.getenv('RETURN_URL')
 
 WEB_HOOK_PATH = "/souvenir/web_hook"
 PAYMENT_WEB_HOOK_HOST = os.getenv("PAYMENT_WEB_HOOK_HOST")
-PAYMENT_WEB_HOOK_PORT = int(os.getenv("PAYMENT_WEB_HOOK_PORT"))
+PAYMENT_WEB_HOOK_PORT = int(os.getenv("PAYMENT_WEB_HOOK_PORT", 80))
 
 
 class Payment:
