@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DATABASE_HOST = os.getenv('DATABASE_HOST')
-DATABASE_PORT = os.getenv('DATABASE_PORT')
+DATABASE_PORT = os.getenv('DATABASE_PORT', 80)
 
 DB_CONNECTION_STRING = f"http://{DATABASE_HOST}:{DATABASE_PORT}"
 
