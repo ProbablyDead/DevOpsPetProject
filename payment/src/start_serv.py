@@ -10,7 +10,7 @@ app.merge(child_app)
 
 
 def start_serv():
-    app.run(host='0.0.0.0', port=int(os.getenv("PORT")))
+    app.run(host='0.0.0.0', port=int(os.getenv("PORT", 80)))
 
 
 @app.route('/')
