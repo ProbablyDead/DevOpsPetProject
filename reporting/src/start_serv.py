@@ -5,7 +5,7 @@ import os
 app = Bottle()
 app.merge(child_app)
 
-PORT = os.getenv("PORT")
+PORT = os.getenv("PORT", 80)
 
 
 def start_serv():
