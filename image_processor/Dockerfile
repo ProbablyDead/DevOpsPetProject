@@ -10,7 +10,5 @@ MLTL
 
 ADD ./ ./
 
-EXPOSE 8080/tcp
-
 ENTRYPOINT [ "python", "-m", "src" ]
 
