@@ -4,7 +4,8 @@ metadata:
   name: "{{ .Values.reporting.name }}-configmap"
   namespace: {{ .Values.namespace | quote }}
 data:
-  PORT: {{ .Values.reporting.port | quote }}
-  INGREDIENT_QUESTION_COUNT: {{ .Values.reporting.ingredient_question_count | quote }}
-  CREDENTIALS_FILE: "{{ .Values.reporting.credentialsFilePath }}/{{ .Values.reporting.credentialsFileName }}"
-
+{{- with .Values.reporting }}
+  PORT: {{ .port | quote }}
+  INGREDIENT_QUESTION_COUNT: {{ .ingredient_question_count | quote }}
+  CREDENTIALS_FILE: "{{ .credentialsFilePath }}/{{ .credentialsFileName }}"
+{{- end }}

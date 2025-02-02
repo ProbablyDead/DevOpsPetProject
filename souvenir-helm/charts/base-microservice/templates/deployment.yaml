@@ -18,6 +18,7 @@ spec:
       labels:
         app: {{ .Values.name }}-app
     spec:
+      restartPolicy: "Always"
       containers:
         - name: {{ .Values.name | quote }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -31,6 +32,21 @@ spec:
             - secretRef:
                 name: "{{ .Values.name }}-secret"
             {{- end -}}
+      {{- if .Values.waitFor }}
+      initContainers:
+        {{- range .Values.waitFor.services }}
+        - name: "init-{{ . }}"
+          image: busybox:1.28
+          command: [
+              'sh',
+              '-c',
+              'until nslookup {{ . }}.{{ $.Values.namespace }}.svc.cluster.local;
+                do echo waiting for {{ . }};
+                sleep 2;
+              done'
+            ]
+        {{- end -}}
+      {{- end -}}
       {{- if .Values.isCredentials }}
           volumeMounts:
             - mountPath: {{ .Values.credentialsFilePath | quote }}
