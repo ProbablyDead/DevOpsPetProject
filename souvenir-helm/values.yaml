@@ -1,0 +1,35 @@
+namespace: &namespace "souvenir"
+defaultPort: &defaultPort 80
+
+imageprocessor:
+  name: image-processor
+  image:
+    repository: "yakiza/image_processor"
+    tag: "latest"
+  namespace: *namespace
+  port: *defaultPort
+  configMapName: "image-processor-configmap"
+
+payment:
+  name: payment
+  image:
+    repository: "yakiza/payment"
+    tag: "latest"
+  namespace: *namespace
+  port: *defaultPort
+  configMapName: "payment-configmap"
+  secretName: "payment-secret"
+
+reporting:
+  name: reporting
+  image:
+    repository: "yakiza/reporting"
+    tag: "latest"
+  namespace: *namespace
+  port: *defaultPort
+  configMapName: "reporting-configmap"
+  secretName: "reporting-secret"
+  credentialsContentSecretName: "reporting-credentials-secret"
+  credentialsFilePath: "/var/souvenir/google_creds"
+  credentialsFileName: "credentials.json"
+  ingredient_question_count: "6"

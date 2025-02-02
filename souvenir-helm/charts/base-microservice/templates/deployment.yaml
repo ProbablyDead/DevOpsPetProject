@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}-deployment
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicasCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}-app
+    spec:
+      containers:
+        - name: {{ .Values.name | quote }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ .Values.port }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.configMapName | quote }}
+            {{- if .Values.secretName }}
+            - secretRef:
+                name: {{ .Values.secretName | quote }}
+            {{- end -}}
+      {{- if .Values.credentialsContentSecretName }}
+          volumeMounts:
+            - mountPath: {{ .Values.credentialsFilePath | quote }}
+              name: credential-file
+              readOnly: true
+      volumes:
+        - name: credential-file
+          secret:
+            secretName: {{ .Values.credentialsContentSecretName | quote }}
+            items:
+            - key: credentialsFileContent
+              path: {{ .Values.credentialsFileName | quote }}
+      {{- end -}}
