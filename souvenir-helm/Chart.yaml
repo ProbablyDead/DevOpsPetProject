@@ -20,3 +20,8 @@ dependencies:
 
   - alias: reporting
     <<: *base-microservice
+
+  - alias: postgres
+    name: postgresql-chart
+    version: "0.1.0"
+    repository: file://./charts/postgres-db/

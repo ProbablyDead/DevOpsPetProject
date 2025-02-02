@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.payment.configMapName | quote }}
+  name: "{{ .Values.payment.name }}-configmap"
   namespace: {{ .Values.namespace | quote }}
 data:
   PORT: {{ .Values.payment.port | quote }}

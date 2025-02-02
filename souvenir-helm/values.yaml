@@ -1,35 +1,58 @@
 namespace: &namespace "souvenir"
 defaultPort: &defaultPort 80
+defaultPullPolicy: &defaultPullPolicy "Always"
 
 imageprocessor:
   name: image-processor
   image:
     repository: "yakiza/image_processor"
     tag: "latest"
+  pullPoicy: *defaultPullPolicy
   namespace: *namespace
   port: *defaultPort
-  configMapName: "image-processor-configmap"
+  replicasCount: 3
+  isSecrets: false
+  isCredentials: false
 
 payment:
   name: payment
   image:
     repository: "yakiza/payment"
     tag: "latest"
+    pullPoicy: *defaultPullPolicy
   namespace: *namespace
   port: *defaultPort
-  configMapName: "payment-configmap"
-  secretName: "payment-secret"
+  replicasCount: 3
+  isSecrets: true
+  isCredentials: false
 
 reporting:
   name: reporting
   image:
     repository: "yakiza/reporting"
     tag: "latest"
+    pullPoicy: *defaultPullPolicy
   namespace: *namespace
   port: *defaultPort
-  configMapName: "reporting-configmap"
-  secretName: "reporting-secret"
-  credentialsContentSecretName: "reporting-credentials-secret"
+  isSecrets: true
+  isCredentials: true
+  replicasCount: 3
   credentialsFilePath: "/var/souvenir/google_creds"
   credentialsFileName: "credentials.json"
   ingredient_question_count: "6"
+
+postgres:
+  name: postgres
+  image:
+    repository: "postgres"
+    tag: "17.2-alpine"
+    pullPoicy: "IfNotPresent"
+  replicaCount: 2
+  namespace: *namespace
+  service:
+    type: "ClusterIP"
+    port: 5432
+  persistence:
+    accessMode: ReadWriteOnce
+    size: 10Gi
+  postgresDB: "telegram"

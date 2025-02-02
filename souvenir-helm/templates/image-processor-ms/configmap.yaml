@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.imageprocessor.configMapName | quote }}
+  name: "{{ .Values.imageprocessor.name }}-configmap"
   namespace: {{ .Values.namespace | quote }}
 data:
   PORT: {{ .Values.imageprocessor.port | quote }}

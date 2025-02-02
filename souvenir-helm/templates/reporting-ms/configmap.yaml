@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.reporting.configMapName | quote }}
+  name: "{{ .Values.reporting.name }}-configmap"
   namespace: {{ .Values.namespace | quote }}
 data:
   PORT: {{ .Values.reporting.port | quote }}

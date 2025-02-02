@@ -21,17 +21,17 @@ spec:
       containers:
         - name: {{ .Values.name | quote }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.port }}
           envFrom:
             - configMapRef:
-                name: {{ .Values.configMapName | quote }}
-            {{- if .Values.secretName }}
+                name: "{{ .Values.name }}-configmap"
+            {{- if .Values.isSecret }}
             - secretRef:
-                name: {{ .Values.secretName | quote }}
+                name: "{{ .Values.name }}-secret"
             {{- end -}}
-      {{- if .Values.credentialsContentSecretName }}
+      {{- if .Values.isCredentials }}
           volumeMounts:
             - mountPath: {{ .Values.credentialsFilePath | quote }}
               name: credential-file
@@ -39,7 +39,7 @@ spec:
       volumes:
         - name: credential-file
           secret:
-            secretName: {{ .Values.credentialsContentSecretName | quote }}
+            secretName: "{{ .Values.name }}-credentials-secret"
             items:
             - key: credentialsFileContent
               path: {{ .Values.credentialsFileName | quote }}
