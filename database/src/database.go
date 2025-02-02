@@ -14,33 +14,29 @@ type DatabaseClientInterface interface {
 	GetPaymentCount(user_id string, ch chan int)
 }
 
-const DATABASE_NAME string = "telegram"
+const DEFAULT_DATABASE_NAME string = "postgres"
 const TABLE_NAME string = "tests"
 
 func GetDBClient(user, password, host, port, db_name, sslmode string) DatabaseClientInterface {
-	dbc := DatabaseClient{get_connection_string(user, password, host, port, sslmode)}
-	create_and_add_connection_to_database(&dbc)
+	dbc := DatabaseClient{user, password, host, port, DEFAULT_DATABASE_NAME, sslmode, ""}
+	dbc.update_connection_string()
+	create_and_add_connection_to_database(&dbc, db_name)
 	return dbc
 }
 
-func get_connection_string(user, password, host, port, sslmode string) string {
-	return fmt.Sprintf("user=%v password=%v host=%v port=%v sslmode=%v",
-		user, password, host, port, sslmode)
-}
-
-func create_and_add_connection_to_database(dbc *DatabaseClient) {
+func create_and_add_connection_to_database(dbc *DatabaseClient, db_name string) {
 	dbpool := dbc.get_pool()
 
 	var exists bool
 	err := dbpool.QueryRow(context.Background(),
 		"SELECT EXISTS (SELECT FROM pg_database WHERE datname = $1)",
-		DATABASE_NAME).Scan(&exists)
+		db_name).Scan(&exists)
 	if err != nil {
 		panic(err)
 	}
 
 	if !exists {
-		_, err := dbpool.Exec(context.Background(), "CREATE DATABASE "+DATABASE_NAME)
+		_, err := dbpool.Exec(context.Background(), "CREATE DATABASE "+db_name)
 		if err != nil {
 			panic(err)
 		}
@@ -48,7 +44,8 @@ func create_and_add_connection_to_database(dbc *DatabaseClient) {
 
 	dbpool.Close()
 
-	dbc.connection_str += " dbname=" + DATABASE_NAME
+	dbc.db_name = db_name
+	dbc.update_connection_string()
 	dbpool = dbc.get_pool()
 	defer dbpool.Close()
 
@@ -66,7 +63,18 @@ func create_and_add_connection_to_database(dbc *DatabaseClient) {
 }
 
 type DatabaseClient struct {
+	user,
+	password,
+	host,
+	port,
+	db_name,
+	sslmode,
 	connection_str string
+}
+
+func (dbc *DatabaseClient) update_connection_string() {
+	dbc.connection_str = fmt.Sprintf("user=%v password=%v host=%v port=%v database=%v sslmode=%v",
+		dbc.user, dbc.password, dbc.host, dbc.port, dbc.db_name, dbc.sslmode)
 }
 
 // GetPassCount implements DatabaseClientInterface.
