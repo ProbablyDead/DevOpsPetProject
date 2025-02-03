@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Values.tgbot.name }}-configmap"
+  namespace: {{ .Values.namespace | quote }}
+data:
+{{- with .Values.tgbot }}
+  PRICE: {{ .price | quote }}
+  RETURN_URL: {{ .returnUrl | quote }}
+  IMAGE_PROCESSOR_HOST: {{ .imageProcessor.host | quote }}
+  IMAGE_PROCESSOR_PORT: {{ .imageProcessor.port | quote }}
+  DATABASE_HOST: {{ .databaseInterface.host | quote }}
+  DATABASE_PORT: {{ .databaseInterface.port | quote }}
+  {{- with .payment }}
+  PAYMENT_HOST: {{ .host | quote }}
+  PAYMENT_PORT: {{ .port | quote }}
+  PAYMENT_WEB_HOOK_HOST: {{ .webhook.host | quote }}
+  PAYMENT_WEB_HOOK_PORT: {{ .webhook.port | quote }}
+  {{- end }}
+{{- end }}
