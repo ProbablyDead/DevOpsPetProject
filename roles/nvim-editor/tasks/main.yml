@@ -1,60 +1,64 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # tasks file for nvim-editor
-- name: Remove the old Neovim installation
-  ansible.builtin.file:
-    path: "/opt/nvim"
-    state: "absent"
+- name: Check neovim installation
+  ansible.builtin.command: nvim -v
+  changed_when: false
+  register: nvim_status
+  ignore_errors: yes
 
-- name: Download NeoVim
-  ansible.builtin.get_url: 
-    url: "https://github.com/neovim/neovim/archive/refs/tags/v{{ neovim_version }}.tar.gz"
-    dest: "/tmp/{{ nvim_path }}.tar.gz"
+- name: Install NeoVim
+  when: nvim_status.rc != 0 or neovim_version not in nvim_status.stdout
+  block:
+  - name: Download NeoVim
+    ansible.builtin.get_url: 
+      url: "https://github.com/neovim/neovim/archive/refs/tags/v{{ neovim_version }}.tar.gz"
+      dest: "/tmp/{{ nvim_path }}.tar.gz"
 
-- name: Extract Neovim
-  ansible.builtin.unarchive:
-    src: "/tmp/{{ nvim_path }}.tar.gz"
-    dest: "/tmp/"
-    remote_src: yes
+  - name: Extract Neovim
+    ansible.builtin.unarchive:
+      src: "/tmp/{{ nvim_path }}.tar.gz"
+      dest: "/tmp/"
+      remote_src: yes
 
-- name: Remove the tar
-  ansible.builtin.file:
-    path: "/tmp/{{ nvim_path }}.tar.gz"
-    state: "absent"
+  - name: Remove the tar
+    ansible.builtin.file:
+      path: "/tmp/{{ nvim_path }}.tar.gz"
+      state: "absent"
 
-- name: Install dependencies
-  ansible.builtin.apt:
-    pkg:
-      - cmake
-      - ninja-build
-      - gettext
-      - unzip
-      - curl
-      - build-essential
-    state: present
+  - name: Install dependencies
+    ansible.builtin.apt:
+      pkg:
+        - cmake
+        - ninja-build
+        - gettext
+        - unzip
+        - curl
+        - build-essential
+      state: present
 
-- name: Build NeoVim
-  community.general.make:
-    chdir: "/tmp/{{ nvim_path }}"
-    target: "install"
-    params:
-      CMAKE_BUILD_TYPE: "RelWithDebInfo"
+  - name: Build NeoVim
+    community.general.make:
+      chdir: "/tmp/{{ nvim_path }}"
+      target: "install"
+      params:
+        CMAKE_BUILD_TYPE: "RelWithDebInfo"
 
-- name: Uninstall dependencies
-  ansible.builtin.apt:
-    pkg:
-      - cmake
-      - ninja-build
-      - gettext
-      - unzip
-      - curl
-      - build-essential
-    state: absent
+  - name: Uninstall dependencies
+    ansible.builtin.apt:
+      pkg:
+        - cmake
+        - ninja-build
+        - gettext
+        - unzip
+        - curl
+        - build-essential
+      state: absent
 
-- name: Delete source code
-  ansible.builtin.file:
-    state: absent
-    path: /tmp/{{ nvim_path }}
+  - name: Delete source code
+    ansible.builtin.file:
+      state: absent
+      path: /tmp/{{ nvim_path }}
 
 - name: Add alias to nvim
   ansible.builtin.lineinfile:
@@ -64,6 +68,8 @@
     state: present
 
 - name: Clone configuration
+  become: no
   ansible.builtin.git:
     repo: "{{ configuration_repo }}"
     dest: "/home/{{ user }}/.config/nvim"
+    force: true

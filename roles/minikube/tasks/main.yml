@@ -1,0 +1,54 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for minikube
+- name: Check if minikube is installed 
+  become: no
+  changed_when: false
+  ansible.builtin.command: minikube version
+  register: minikube_check
+  ignore_errors: yes
+
+- name: Install minikube
+  when: minikube_check.rc != 0
+  block:
+  - name: Download minikube
+    ansible.builtin.get_url:
+      url: "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-{{ cpu_architecture }}"
+      dest: "/home/{{ user }}/minikube"
+      mode: "0774"
+
+  - name: Creates directory
+    ansible.builtin.file:
+      path: "/usr/local/bin/"
+      state: "directory"
+
+  - name: Install minikube
+    ansible.builtin.command: "install /home/{{ user }}/minikube /usr/local/bin/"
+
+  - name: Clean up
+    ansible.builtin.file:
+      path: "/home/{{ user }}/minikube"
+      state: "absent"
+
+- name: Check if minikube is running
+  become: no
+  ansible.builtin.command: minikube status
+  register: minikube_status
+  changed_when: false
+  ignore_errors: yes
+
+- name: Start cluster
+  when: "'Running' not in minikube_status.stdout"
+  become: no
+  ansible.builtin.command: "minikube start --driver=docker"
+
+- name: Check kubectl context
+  become: no
+  command: "kubectl config current-context"
+  register: previous_context
+  changed_when: false
+
+- name: Assing kubectl context to minikube
+  when: previous_context.stdout != "minikube"
+  become: no
+  ansible.builtin.command: "kubectl config use-context minikube"
