@@ -1,0 +1,43 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for kubectl
+- name: Check if kubectl is installed
+  become: no
+  ansible.builtin.command: kubectl version
+  register: kubectl_status
+  ignore_errors: true
+  changed_when: false
+
+- name: Install kubectl
+  when: kubectl_status.rc != 0
+  block:
+  - name: Install dependencies
+    ansible.builtin.apt:
+      pkg:
+        - apt-transport-https 
+        - ca-certificates 
+        - curl 
+        - gnupg
+      state: present
+
+  - name: Download the public signing key
+    ansible.builtin.apt_key:
+      url: "https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key"
+      keyring: "/etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+
+  - name: Change mode for key
+    ansible.builtin.file:
+      path: "/etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+      mode: "0644"
+
+  - name: Add repo
+    ansible.builtin.apt_repository:
+      repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /"
+      filename: "/etc/apt/sources.list.d/kubernetes.list"
+      mode: "0644"
+      state: present
+
+  - name: Install kubectl
+    ansible.builtin.apt:
+      name: kubectl
+      state: present

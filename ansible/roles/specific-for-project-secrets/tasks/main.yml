@@ -1,0 +1,9 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for specific-for-project-secrets
+- name: Copy
+  ansible.builtin.copy:
+    src: "{{ gpg_config_path }}"
+    dest: "/home/{{ user }}/.gnupg"
+    owner: "{{ user }}"
+    group: "{{ user }}"
