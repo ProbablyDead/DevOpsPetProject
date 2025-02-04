@@ -1,0 +1,21 @@
+dependencies:
+- name: base-microservice
+  repository: file://./charts/base-microservice
+  version: 0.1.0
+- name: base-microservice
+  repository: file://./charts/base-microservice
+  version: 0.1.0
+- name: base-microservice
+  repository: file://./charts/base-microservice
+  version: 0.1.0
+- name: base-microservice
+  repository: file://./charts/base-microservice
+  version: 0.1.0
+- name: base-microservice
+  repository: file://./charts/base-microservice
+  version: 0.1.0
+- name: postgresql-chart
+  repository: file://./charts/postgres-db/
+  version: 0.1.0
+digest: sha256:a34a5929224e3fe36b8991b765e0fcda1409fa6dfc3009071499f31f98587f1b
+generated: "2025-02-04T17:51:07.958080848Z"

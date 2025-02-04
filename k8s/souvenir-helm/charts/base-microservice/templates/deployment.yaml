@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}-deployment
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  replicas: {{ .Values.replicasCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}-app
+    spec:
+      restartPolicy: "Always"
+      containers:
+        - name: {{ .Values.name | quote }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.port }}
+          envFrom:
+            - configMapRef:
+                name: "{{ .Values.name }}-configmap"
+            {{- if .Values.isSecret }}
+            - secretRef:
+                name: "{{ .Values.name }}-secret"
+            {{- end -}}
+      {{- if .Values.waitFor }}
+      initContainers:
+        {{- range .Values.waitFor.services }}
+        - name: "init-{{ . }}"
+          image: busybox:1.28
+          command: [
+              'sh',
+              '-c',
+              'until nslookup {{ . }}.{{ $.Release.Namespace }}.svc.cluster.local;
+                do echo waiting for {{ . }};
+                sleep 2;
+              done'
+            ]
+        {{- end -}}
+      {{- end -}}
+      {{- if .Values.isCredentials }}
+          volumeMounts:
+            - mountPath: {{ .Values.credentialsFilePath | quote }}
+              name: credential-file
+              readOnly: true
+      volumes:
+        - name: credential-file
+          secret:
+            secretName: "{{ .Values.name }}-credentials-secret"
+            items:
+            - key: credentialsFileContent
+              path: {{ .Values.credentialsFileName | quote }}
+      {{- end -}}

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Values.reporting.name }}-configmap"
+  namespace: {{ .Release.Namespace | quote }}
+data:
+{{- with .Values.reporting }}
+  PORT: {{ .port | quote }}
+  INGREDIENT_QUESTION_COUNT: {{ .ingredient_question_count | quote }}
+  CREDENTIALS_FILE: "{{ .credentialsFilePath }}/{{ .credentialsFileName }}"
+{{- end }}
