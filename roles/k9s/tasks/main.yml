@@ -1,0 +1,14 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for k9s
+- name: Check if k9s is Installed
+  become: no
+  ansible.builtin.command: k9s version
+  register: k9s_install_status
+  changed_when: false
+  ignore_errors: yes
+
+- name: Install helmfile
+  when: k9s_install_status.rc != 0
+  include_role:
+    name: pandemonium1986.k9s
