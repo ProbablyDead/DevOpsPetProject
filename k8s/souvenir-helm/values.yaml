@@ -1,0 +1,103 @@
+defaultPort: &defaultPort 80
+defaultPullPolicy: &defaultPullPolicy "Always"
+
+tgbot:
+  name: tg-bot
+  image:
+    repository: "yakiza/tg_bot"
+    tag: "latest"
+    pullPoicy: *defaultPullPolicy
+  isSecret: true
+  replicaCount: 1
+  price: "1200"
+  port: *defaultPort
+  returnUrl: "https://google.com"
+  waitFor:
+    services:
+      - "database-interface-lb"
+      - "payment-lb"
+      - "image-processor-lb"
+  databaseInterface:
+    host: "database-interface-lb"
+    port: *defaultPort
+  payment:
+    host: "payment-lb"
+    port: *defaultPort
+    webhook:
+      host: "tg-bot-lb"
+      port: *defaultPort
+  imageProcessor:
+    host: "image-processor-lb"
+    port: *defaultPort
+
+databaseinterface:
+  name: database-interface
+  image:
+    repository: "yakiza/database"
+    tag: "latest"
+    pullPoicy: *defaultPullPolicy
+  port: *defaultPort
+  isSecret: true
+  replicaCount: 1
+  waitFor:
+    services:
+      - "postgres-service"
+      - "reporting-lb"
+  db:
+    host: "postgres-service"
+    port: 5432
+    name: "telegram"
+    ssl: "disable"
+  port: *defaultPort
+  reporting:
+    host: "reporting-lb"
+    port: *defaultPort
+
+postgres:
+  name: postgres
+  image:
+    repository: "postgres"
+    tag: "17.2-alpine"
+    pullPoicy: "IfNotPresent"
+  replicaCount: 1
+  service:
+    type: "ClusterIP"
+    port: 5432
+  persistence:
+    accessMode: ReadWriteOnce
+    size: 3Gi
+  postgresDB: "telegram"
+
+reporting:
+  name: reporting
+  image:
+    repository: "yakiza/reporting"
+    tag: "latest"
+    pullPoicy: *defaultPullPolicy
+  port: *defaultPort
+  isSecrets: true
+  isCredentials: true
+  replicasCount: 3
+  credentialsFilePath: "/var/souvenir/google_creds"
+  credentialsFileName: "credentials.json"
+  ingredient_question_count: "6"
+
+payment:
+  name: payment
+  image:
+    repository: "yakiza/payment"
+    tag: "latest"
+    pullPoicy: *defaultPullPolicy
+  port: *defaultPort
+  replicasCount: 3
+  isSecrets: true
+
+imageprocessor:
+  name: image-processor
+  image:
+    repository: "yakiza/image_processor"
+    tag: "latest"
+  pullPoicy: *defaultPullPolicy
+  port: *defaultPort
+  replicasCount: 3
+

@@ -1,0 +1,29 @@
+prometheus:
+  prometheusSpec:
+    enableAdminAPI: true
+  additionalServiceMonitors:
+    - name: kube-prometheus-stack-souvenir-boot
+      selector:
+        matchLabels:
+          prometheus-monitoring: 'true'
+      namespaceSelector:
+        matchNames:
+          - souvenir
+      endpoints:
+        - port: management
+          interval: 5s
+          path: /actuator/prometheus
+
+grafana:
+  enabled: true
+  adminPassword: admin
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      folder: /tmp/dashboards
+      provider:
+        foldersFromFilesStructure: true
+
+alertmanager:
+  enabled: false

@@ -1,0 +1,33 @@
+apiVersion: v2
+name: souvenir-helm
+description: A Helm chart for Kubernetes
+type: application
+version: 0.1.0
+appVersion: "1.16.0"
+
+base-microservice: &base-microservice
+  name: base-microservice
+  version: "0.1.0"
+  repository: file://./charts/base-microservice
+
+dependencies:
+  - alias: tgbot
+    <<: *base-microservice
+
+  - alias: databaseinterface
+    <<: *base-microservice
+
+  - alias: reporting
+    <<: *base-microservice
+
+  - alias: payment
+    <<: *base-microservice
+
+  - alias: imageprocessor
+    <<: *base-microservice
+
+  - alias: postgres
+    name: postgresql-chart
+    version: "0.1.0"
+    repository: file://./charts/postgres-db/
+
