@@ -1,6 +1,6 @@
 pipeline {
-    agent any
     stages {
+        agent any
         stage('verify installation') {
             steps {
                 sh '''
@@ -18,6 +18,21 @@ pipeline {
         stage('push') {
             steps {
                 sh 'docker compose push'
+            }
+        }
+    }
+    stages {
+        agent Linux
+        stage('verify installation') {
+            steps {
+                sh '''
+                    helmfile -v
+                '''
+            }
+        }
+        stage('apply changes') {
+            steps {
+                sh 'helmfile sync'
             }
         }
     }
