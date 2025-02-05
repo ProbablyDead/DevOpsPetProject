@@ -1,7 +1,7 @@
 pipeline {
+    agent any
     stages {
-        agent any
-        stage('verify installation') {
+        stage('verify docker installation') {
             steps {
                 sh '''
                     docker version
@@ -20,22 +20,18 @@ pipeline {
                 sh 'docker compose push'
             }
         }
-    }
-    stages {
-        agent Linux
-        stage('verify installation') {
+        stage('verify helmfile installation') {
+            agent { label 'Linux' }
             steps {
-                sh '''
-                    helmfile -v
-                '''
+                sh 'helmfile -v'
             }
         }
         stage('apply changes') {
+            agent { label 'Linux' }
             steps {
-                withCredentials([file(credentialsId: gpg_key, variable: 'signingKey')])
-                {
-                    sh ('cat $signingKey > $WORKSPACE/signkey.gpg')
-                    sh ('gpg --allow-secret-key-import --import signkey.gpg')
+                withCredentials([file(credentialsId: 'gpg_key', variable: 'signingKey')]) {
+                    sh 'cat $signingKey > $WORKSPACE/signkey.gpg'
+                    sh 'gpg --allow-secret-key-import --import $WORKSPACE/signkey.gpg'
                 }
                 sh 'helmfile sync'
             }
