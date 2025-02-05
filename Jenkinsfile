@@ -32,7 +32,7 @@ pipeline {
                 withCredentials([file(credentialsId: 'gpg_key', variable: 'signingKey')]) {
                     sh 'cat $signingKey > $WORKSPACE/signkey.gpg'
                     sh 'gpg --allow-secret-key-import --import $WORKSPACE/signkey.gpg'
-                    sh 'rm $WORKSPACE/signingKey.gpg'
+                    sh 'rm $WORKSPACE/signkey.gpg'
                 }
                 sh 'cd k8s && helmfile sync'
             }
