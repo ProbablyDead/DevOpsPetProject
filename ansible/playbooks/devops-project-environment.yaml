@@ -15,8 +15,6 @@
     k9s_checksum: "sha256:b890a7a212a3fc69e6ea4b2a29d59f80ed501a27ad654c819a155cc7c3c6aa8d"
     k9s_version: "v0.32.7"
     k9s_user: "{{ user }}"
-
-    gpg_config_path: "/Users/IlyaVolodin/.gnupg/"
   roles:
     - "./roles/base"
     - "./roles/nvim-editor"
@@ -25,4 +23,3 @@
     - "./roles/minikube"
     - "./roles/helm"
     - "./roles/k9s"
-    - "./roles/specific-for-project-secrets"
