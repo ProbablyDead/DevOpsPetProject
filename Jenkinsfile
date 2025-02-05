@@ -12,12 +12,12 @@ pipeline {
         }
         stage('build') {
             steps {
-                'docker compose build'
+                sh 'docker compose build'
             }
         }
         stage('push') {
             steps {
-                'docker compose push'
+                sh 'docker compose push'
             }
         }
     }
