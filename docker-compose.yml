@@ -12,8 +12,8 @@ services:
       - network
     ports: 
       - 5432:5432
-    env_file:
-      - ./database/.env
+    # env_file:
+    #   - ./database/.env
     volumes:
           - type: bind
             source: ./postgres_data
@@ -32,8 +32,8 @@ services:
       - network
     ports: 
       - 8081:8081
-    env_file:
-        - ./database/.env
+    # env_file:
+    #     - ./database/.env
     restart: on-failure
   image_processor:
     build:
@@ -44,8 +44,8 @@ services:
       - network
     ports: 
       - 8083:8083
-    environment:
-      PORT: 8083
+    # environment:
+    #   PORT: 8083
     restart: on-failure
   payment:
     build:
@@ -56,8 +56,8 @@ services:
       - network
     ports: 
       - 8082:8082
-    environment:
-      PORT: 8082
+    # environment:
+    #   PORT: 8082
     restart: on-failure
   tg_bot:
     build:
@@ -66,10 +66,10 @@ services:
     container_name: tg_bot
     networks:
       - network
-    ports:
-      - 8080:8080
-    env_file:
-      - ./bot/.env
+    # ports:
+    #   - 8080:8080
+    # env_file:
+    #   - ./bot/.env
     restart: on-failure
   reporting:
     build:
@@ -78,12 +78,12 @@ services:
     container_name: reporting
     networks:
       - network
-    ports: 
-      - 8084:8084
-    env_file:
-      ./reporting/.env
-    environment:
-      CREDENTIALS_FILE: /run/secrets/google_creds
+    # ports: 
+    #   - 8084:8084
+    # env_file:
+    #   ./reporting/.env
+    # environment:
+    #   CREDENTIALS_FILE: /run/secrets/google_creds
     secrets:
       - google_creds
     restart: on-failure
@@ -93,7 +93,7 @@ networks:
     network:
       name: network
       driver: bridge
-
-secrets:
-  google_creds:
-    file: ./reporting/src/google_api/secrets/credentials.json
+#
+# secrets:
+#   google_creds:
+#     file: ./reporting/src/google_api/secrets/credentials.json
