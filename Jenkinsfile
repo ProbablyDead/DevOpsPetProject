@@ -1,9 +1,23 @@
 pipeline {
     agent any
     stages {
+        stage('verify installation') {
+            steps {
+                sh '''
+                    docker version
+                    docker info
+                    docker compose version
+                '''
+            }
+        }
         stage('build') {
             steps {
-                sh 'go version'
+                'docker compose build'
+            }
+        }
+        stage('push') {
+            steps {
+                'docker compose push'
             }
         }
     }
