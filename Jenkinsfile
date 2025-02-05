@@ -33,7 +33,9 @@ pipeline {
                     sh 'cat $signingKey > $WORKSPACE/signkey.gpg'
                     sh 'gpg --allow-secret-key-import --import $WORKSPACE/signkey.gpg'
                 }
-                sh 'helmfile sync'
+                //sh 'helmfile sync'
+                sh 'pwd'
+                sh 'ls'
             }
         }
     }
