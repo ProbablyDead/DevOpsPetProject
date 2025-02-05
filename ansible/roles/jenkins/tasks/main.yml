@@ -1,0 +1,41 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for jenkins
+- name: Install java
+  ansible.builtin.apt:
+    name: openjdk-21-jdk
+    state: present
+
+- name: Install required dependencies
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+    state: present
+
+- name: Create keyrings directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download Jenkins key
+  ansible.builtin.get_url:
+    url: "https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key"
+    dest: "/usr/share/keyrings/jenkins-keyring.asc"
+    mode: '0644'
+
+- name: Add docker repo
+  ansible.builtin.apt_repository:
+    repo: >
+      deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]
+      https://pkg.jenkins.io/debian-stable binary/
+    filename: "/etc/apt/sources.list.d/jenkins"
+    mode: "0644"
+    state: present
+
+- name: Install jenkins
+  ansible.builtin.apt:
+    update_cache: yes
+    name: jenkins
+    state: present

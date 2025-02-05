@@ -23,3 +23,4 @@
     - "./roles/minikube"
     - "./roles/helm"
     - "./roles/k9s"
+    - "./roles/jenkins"
